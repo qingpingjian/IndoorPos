@@ -5,4 +5,7 @@
     <string name="navigation_drawer_close">关闭侧边栏</string>
 
     <string name="action_settings">设置</string>
+
+    <string name="hello_wifi_fragment">Hello wifi fragment</string>
+    <string name="hello_pdr_fragment">Hello pdr fragment</string>
 </resources>

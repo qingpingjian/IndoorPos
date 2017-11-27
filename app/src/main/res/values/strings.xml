@@ -5,4 +5,8 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_wifi_fragment">Hello wifi fragment</string>
+    <string name="hello_pdr_fragment">Hello pdr fragment</string>
 </resources>
