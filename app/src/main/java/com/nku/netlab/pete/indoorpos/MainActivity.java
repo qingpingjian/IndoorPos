@@ -88,21 +88,41 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_manage) {
 
-        } else if (id == R.id.nav_share) {
-            setTitle("Hello WiFi");
+        } else if (id == R.id.nav_wifiscan) {
+            setTitle(getString(R.string.nav_wifi_title));
             WifiFragment wifiView = new WifiFragment();
             FragmentManager manager = getSupportFragmentManager();
             manager.beginTransaction().replace(R.id.position_fragment, wifiView).commit();
 
-        } else if (id == R.id.nav_send) {
-            setTitle("Hello PDR");
+        } else if (id == R.id.nav_pdr) {
+            setTitle(getString(R.string.nav_pdr_title));
             PdrFragment pdrView = new PdrFragment();
             FragmentManager manager = getSupportFragmentManager();
             manager.beginTransaction().replace(R.id.position_fragment, pdrView).commit();
+
+        } else if (id == R.id.nav_exit) {
+            finish();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    @Override
+    public void finish() {
+        // TODO: add some clear operation before finish
+        // Give some time to say bye
+        sleep(50);
+        super.finish();
+    }
+
+    public static void sleep(final long sleepInMsc) {
+        try {
+            Thread.sleep(sleepInMsc);
+        } catch (final InterruptedException ex) {
+            // No worries
+        }
     }
 }
