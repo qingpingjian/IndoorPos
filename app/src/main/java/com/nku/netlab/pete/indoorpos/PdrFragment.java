@@ -14,6 +14,13 @@ import android.view.ViewGroup;
 public class PdrFragment extends Fragment {
 
 
+    public static PdrFragment newInstance() {
+        PdrFragment pdrFrag = new PdrFragment();
+        Bundle args = new Bundle();
+        pdrFrag.setArguments(args);
+        return pdrFrag;
+    }
+
     public PdrFragment() {
         // Required empty public constructor
     }

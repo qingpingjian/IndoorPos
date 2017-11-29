@@ -35,6 +35,9 @@ public class MainActivity extends AppCompatActivity
     public static final int WIFI_TAP_POS = 0;
     public static final int PDR_TAP_POS = 1;
 
+    public static final int WIFI_DEFAULT_SCAN_TYPE = 0;
+    public static final int WIFI_DEFAULT_SCAN_NUM = 10;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,16 +81,10 @@ public class MainActivity extends AppCompatActivity
     }
     private void setupFragments() {
         info("Creating WifiFragment");
-        WifiFragment wifiFrag = new WifiFragment();
-        Bundle bundle = new Bundle();
-        wifiFrag.setArguments(bundle);
-        state.fragList[WIFI_TAP_POS] = wifiFrag;
+        state.fragList[WIFI_TAP_POS] = WifiFragment.newInstance(WIFI_DEFAULT_SCAN_TYPE, WIFI_DEFAULT_SCAN_NUM);
 
         info("Creating PdrFragment");
-        PdrFragment pdrFrag = new PdrFragment();
-        bundle = new Bundle();
-        pdrFrag.setArguments(bundle);
-        state.fragList[PDR_TAP_POS] = pdrFrag;
+        state.fragList[PDR_TAP_POS] = PdrFragment.newInstance();
     }
 
     @Override
