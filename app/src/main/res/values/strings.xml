@@ -1,10 +1,27 @@
 <resources>
     <string name="app_name">IndoorPos</string>
+    <string name="action_settings">Settings</string>
+    <!-- Menu and Fragment Titles -->
+    <string name="nav_wifi_scan">WiFi Scan</string>
+    <string name="nav_pdr">PDR</string>
+    <string name="nav_exit">Exit</string>
+    <string name="nav_wifi_title">WiFi Fingerprint Update</string>
+    <string name="nav_pdr_title">PDR</string>
+    <!-- WiFi Fragment Components -->
+    <string name="wifi_scan_type">ScanType</string>
+    <string name="wifi_scan_fix_time">FixTime</string>
+    <string name="wifi_scan_data_change">DataChange</string>
+    <string name="wifi_scan_num">ScanNum</string>
+    <string name="wifi_coord">XY(m)</string>
+    <string name="wifi_orient">Orient(\u00B0)</string>
+    <string name="wifi_scan">Scan</string>
+    <string name="wifi_stop">Stop</string>
+    <string name="wifi_status">ScanStatus</string>
+    <string name="wifi_status_ready">Ready</string>
+    <string name="wifi_status_start">Start...</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
-    <string name="action_settings">Settings</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_wifi_fragment">Hello wifi fragment</string>

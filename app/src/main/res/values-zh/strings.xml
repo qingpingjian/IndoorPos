@@ -1,10 +1,27 @@
 <resources>
     <string name="app_name">室内定位</string>
+    <string name="action_settings">设置</string>
+    <!-- Menu and Fragment Titles -->
+    <string name="nav_wifi_scan">指纹地图</string>
+    <string name="nav_pdr">航位推算</string>
+    <string name="nav_exit">退出</string>
+    <string name="nav_wifi_title">更新指纹地图</string>
+    <string name="nav_pdr_title">行人航位推算</string>
+    <!-- WiFi Fragment Components -->
+    <string name="wifi_scan_type">方式</string>
+    <string name="wifi_scan_fix_time">每隔一秒</string>
+    <string name="wifi_scan_data_change">数据变化</string>
+    <string name="wifi_scan_num">次数</string>
+    <string name="wifi_coord">坐标(m)</string>
+    <string name="wifi_orient">方向(\u00B0)</string>
+    <string name="wifi_scan">扫描</string>
+    <string name="wifi_stop">停止</string>
+    <string name="wifi_status">状态</string>
+    <string name="wifi_status_ready">预备</string>
+    <string name="wifi_status_start">扫描中...</string>
 
     <string name="navigation_drawer_open">打开侧边栏</string>
     <string name="navigation_drawer_close">关闭侧边栏</string>
-
-    <string name="action_settings">设置</string>
 
     <string name="hello_wifi_fragment">Hello wifi fragment</string>
     <string name="hello_pdr_fragment">Hello pdr fragment</string>

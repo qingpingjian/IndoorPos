@@ -23,7 +23,8 @@ public class PdrFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_pdr, container, false);
+        final View view = inflater.inflate(R.layout.fragment_pdr, container, false);
+        return view;
     }
 
 }

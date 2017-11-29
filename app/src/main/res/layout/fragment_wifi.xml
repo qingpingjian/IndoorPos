@@ -3,11 +3,154 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.nku.netlab.pete.indoorpos.WifiFragment">
-
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_wifi_fragment" />
 
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="11"
+            android:layout_gravity="top"
+            android:layout_marginLeft="2pt"
+            android:layout_marginTop="2pt"
+            android:alignmentMode="alignBounds">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/wifi_scan_type"
+                android:id="@+id/textView2"
+                android:layout_row="0"
+                android:layout_column="0"
+                android:singleLine="true" />
+
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_row="0"
+                android:layout_column="1"
+                android:layout_columnSpan="2"
+                android:orientation="horizontal"
+                android:id="@+id/rbgScanType">
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/wifi_scan_data_change"
+                    android:id="@+id/rbDataChange"
+                    android:checked="true" />
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/wifi_scan_fix_time"
+                    android:id="@+id/rbFixTime"
+                    android:checked="false" />
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/wifi_scan_num"
+                android:id="@+id/textView3"
+                android:layout_row="1"
+                android:layout_column="0"
+                android:singleLine="true" />
+
+            <EditText
+                android:layout_width="95dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:ems="10"
+                android:id="@+id/edtScanNum"
+                android:layout_row="1"
+                android:layout_column="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/wifi_coord"
+                android:id="@+id/textView4"
+                android:layout_row="2"
+                android:layout_column="0"
+                android:singleLine="true" />
+
+            <EditText
+                android:layout_width="95dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:ems="10"
+                android:id="@+id/edtX"
+                android:layout_row="2"
+                android:layout_column="1" />
+
+            <EditText
+                android:layout_width="95dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:ems="10"
+                android:id="@+id/edtY"
+                android:layout_row="2"
+                android:layout_column="2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/wifi_orient"
+                android:id="@+id/textView6"
+                android:layout_row="3"
+                android:layout_column="0"
+                android:singleLine="true" />
+
+            <EditText
+                android:layout_width="95dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:ems="10"
+                android:id="@+id/edtOrient"
+                android:layout_row="3"
+                android:layout_column="1"
+                android:editable="false" />
+
+            <ProgressBar
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pbScanStatus"
+                android:layout_row="4"
+                android:layout_column="1"
+                android:visibility="invisible"
+                android:layout_columnSpan="2" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/wifi_scan"
+                android:id="@+id/btnScan"
+                android:layout_row="5"
+                android:layout_column="0"
+                android:focusable="true" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/wifi_stop"
+                android:id="@+id/btnStop"
+                android:layout_row="5"
+                android:layout_column="2" />
+
+        </GridLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/hello_wifi_fragment" />
+
+    </LinearLayout>
 </FrameLayout>

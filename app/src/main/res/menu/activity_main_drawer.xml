@@ -14,10 +14,12 @@
 
     <item android:title="Communicate">
         <menu>
-            <item android:id="@+id/nav_share" android:icon="@android:drawable/ic_menu_share"
-                android:title="Share" />
-            <item android:id="@+id/nav_send" android:icon="@android:drawable/ic_menu_send"
-                android:title="Send" />
+            <item android:id="@+id/nav_wifiscan" android:icon="@android:drawable/ic_menu_save"
+                android:title="@string/nav_wifi_scan" />
+            <item android:id="@+id/nav_pdr" android:icon="@android:drawable/ic_menu_send"
+                android:title="@string/nav_pdr" />
+            <item android:id="@+id/nav_exit" android:icon="@android:drawable/ic_menu_close_clear_cancel"
+                android:title="@string/nav_exit"/>
         </menu>
     </item>
 
