@@ -3,14 +3,16 @@ package com.nku.netlab.pete.indoorpos.model;
 import java.io.Serializable;
 
 public class WifiScanConfig implements Serializable{
+    public static final int WIFI_SCAN_DATA_CHANGE = 0;
+    public static final int WIFI_SCAN_FIX_TIME = 1;
     private int scanType;
     private int scanNum;
     private float coordX;
     private float coordY;
 
     public WifiScanConfig() {
-        scanType = 0;
-        scanNum = 10;
+        scanType = WIFI_SCAN_FIX_TIME;
+        scanNum = 4;
         coordX = 0.0f;
         coordY = 0.0f;
     }

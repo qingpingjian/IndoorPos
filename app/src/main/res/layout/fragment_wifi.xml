@@ -62,13 +62,14 @@
                 android:singleLine="true" />
 
             <EditText
+                android:id="@+id/edtScanNum"
                 android:layout_width="95dp"
                 android:layout_height="wrap_content"
-                android:inputType="number"
-                android:ems="10"
-                android:id="@+id/edtScanNum"
-                android:layout_row="1"
                 android:layout_column="1"
+                android:layout_row="1"
+                android:ems="10"
+                android:inputType="number"
+                android:digits="0123456789"
                 android:text="10" />
 
             <TextView
@@ -114,23 +115,22 @@
             <EditText
                 android:layout_width="95dp"
                 android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
+                android:inputType="none"
                 android:ems="10"
                 android:id="@+id/edtOrient"
                 android:layout_row="3"
                 android:layout_column="1"
-                android:editable="false"
                 android:text="0.0" />
 
             <ProgressBar
-                style="?android:attr/progressBarStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:id="@+id/pbScanStatus"
-                android:layout_row="4"
+                style="@android:style/Widget.Holo.ProgressBar.Horizontal"
+                android:layout_width="190dp"
+                android:layout_height="wrap_content"
                 android:layout_column="1"
-                android:visibility="invisible"
-                android:layout_columnSpan="2" />
+                android:layout_columnSpan="2"
+                android:layout_row="4"
+                android:visibility="invisible" />
 
             <Button
                 android:layout_width="wrap_content"

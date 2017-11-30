@@ -1,12 +1,9 @@
 package com.nku.netlab.pete.indoorpos;
 
 
-import android.app.Activity;
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +11,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
@@ -100,7 +96,7 @@ public class WifiFragment extends Fragment implements View.OnClickListener{
         Bundle args = getArguments();
         if (args != null) {
             WifiScanConfig config = (WifiScanConfig) args.getSerializable(ARG_WIFI_SCAN);
-            if (config.getScanType() == 0)
+            if (config.getScanType() == WifiScanConfig.WIFI_SCAN_DATA_CHANGE)
                 m_rbDataChange.setChecked(true);
             else
                 m_rbFixTime.setChecked(true);
@@ -115,12 +111,12 @@ public class WifiFragment extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         int id = v.getId();
         if(id == R.id.btnScan) {
-            int scanNum = Integer.getInteger(m_edtScanNum.getText().toString().trim());
+            int scanNum = Integer.parseInt(m_edtScanNum.getText().toString().trim());
             WifiScanConfig config = new WifiScanConfig();
-            config.setScanType(m_rbDataChange.isChecked() ? 0 : 1);
+            config.setScanType(m_rbDataChange.isChecked() ? WifiScanConfig.WIFI_SCAN_DATA_CHANGE : WifiScanConfig.WIFI_SCAN_FIX_TIME);
             config.setScanNum(scanNum);
-            config.setCoordX(Float.valueOf(m_edtX.getText().toString().trim()));
-            config.setCoordY(Float.valueOf(m_edtY.getText().toString().trim()));
+            config.setCoordX(Float.parseFloat(m_edtX.getText().toString().trim()));
+            config.setCoordY(Float.parseFloat(m_edtY.getText().toString().trim()));
             if (m_WifiListener.onStartScanWifi(config)) {
                 m_btnScan.setEnabled(false);
                 m_btnStop.setEnabled(true);

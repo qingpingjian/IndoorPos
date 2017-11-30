@@ -58,17 +58,15 @@ public class MainActivity extends AppCompatActivity
 //                        .setAction("Action", null).show();
 //            }
 //        });
-        if (savedInstanceState == null) {
+       // if (savedInstanceState == null) {
             state = new State();
             state.finishing = new AtomicBoolean(false);
             state.wifiReceiver = new WifiReceiver(this);
+            setupFragments();
             state.currentFragIndex = -1; // I want to add fragment in selectFragment method
             // show the wifi training fragment by default
             selectFragment(WIFI_TAB_POS);
-            if (savedInstanceState == null) {
-                setupFragments();
-            }
-        }
+        //}
     }
 
     private void setupMenuDrawer() {
@@ -186,16 +184,17 @@ public class MainActivity extends AppCompatActivity
     public void finish() {
         // TODO: add some clear operation before finish
         final boolean wasFinishing = state.finishing.getAndSet(true);
-        if (wasFinishing) {
-            info("MAIN: finish called twice!");
+        if (!wasFinishing) { // The wasFinishing is true which means finish twice
+            state.wifiReceiver.stopScan();
+            // Give some time to say bye
+            sleep(50);
         }
-        // Give some time to say bye
-        sleep(50);
+
         super.finish();
     }
     @Override
     public boolean onStartScanWifi(WifiScanConfig config) {
-        WifiManager manager = (WifiManager) this.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        WifiManager manager = (WifiManager) this.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         boolean wifiFlag = manager.isWifiEnabled();
         if (wifiFlag) {
             state.wifiReceiver.startScan(config);
@@ -208,13 +207,16 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onStopScanWifi() {
-        state.wifiReceiver.stopScan();
+        if (state != null) {
+            state.wifiReceiver.stopScan();
+        }
     }
 
     public void updateWifiScanStatus(int scanNum) {
-        FragmentManager manager = getSupportFragmentManager();
-        WifiFragment wifiFrag = (WifiFragment) state.fragList[WIFI_TAB_POS];
-        wifiFrag.updateWifiScanStatus(scanNum);
+        if (state != null) {
+            WifiFragment wifiFrag = (WifiFragment) state.fragList[WIFI_TAB_POS];
+            wifiFrag.updateWifiScanStatus(scanNum);
+        }
     }
 
     /**

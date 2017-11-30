@@ -20,6 +20,7 @@ import java.util.TimerTask;
 
 public class WifiReceiver extends BroadcastReceiver {
     private MainActivity mainActivity;
+    private boolean m_isScanning;
     private WifiManager wifiManager;
     private ArrayList<String> m_wifiRSSList;
     private Timer m_scanTimer;
@@ -36,11 +37,13 @@ public class WifiReceiver extends BroadcastReceiver {
 
     public WifiReceiver(final MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        this.wifiManager = (WifiManager) this.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        this.m_isScanning = false;
+        this.wifiManager = (WifiManager) this.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         this.m_wifiRSSList = new ArrayList<>();
         this.m_scanTimer = null;
         this.m_scanTimerTask = null;
         this.m_scanHandler = new ScanHandler();
+        this.m_config = null;
     }
 
     @Override
@@ -48,16 +51,6 @@ public class WifiReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
             getWifiScanResults();
-            this.mainActivity.updateWifiScanStatus(m_wifiRSSList.size());
-            // we have enough wifi rss records
-            if (m_wifiRSSList.size() >= m_config.getScanNum()) {
-                stopScan();
-                // TODO: Now we need to say the scan results.
-
-            }
-            else {
-                wifiManager.startScan();
-            }
         }
     }
 
@@ -77,6 +70,18 @@ public class WifiReceiver extends BroadcastReceiver {
                     sb.append("|");
             }
             m_wifiRSSList.add(sb.toString());
+            int recordNum = m_wifiRSSList.size();
+            // To update the view of wifi fragment
+            this.mainActivity.updateWifiScanStatus(recordNum);
+            // We have enough wifi rss records
+            if (recordNum >= m_config.getScanNum()) {
+                stopScan();
+                // TODO: Now we need to save the scan results.
+
+            }
+            else {
+                wifiManager.startScan();
+            }
         }
     }
 
@@ -118,10 +123,11 @@ public class WifiReceiver extends BroadcastReceiver {
         synchronized (this) {
             m_config = config;
             m_wifiRSSList.clear();
+            m_isScanning = true;
         }
 
         // data change
-        if (m_config.getScanType() == 0) {
+        if (m_config.getScanType() == WifiScanConfig.WIFI_SCAN_DATA_CHANGE) {
             IntentFilter filter = new IntentFilter();
             filter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
             try {
@@ -138,7 +144,9 @@ public class WifiReceiver extends BroadcastReceiver {
     }
 
     public void stopScan() {
-        if (m_config.getScanType() == 0) {
+        if (!m_isScanning)
+            return;
+        if (m_config.getScanType() == WifiScanConfig.WIFI_SCAN_DATA_CHANGE) {
             try {
                 this.mainActivity.unregisterReceiver(this);
             }
@@ -147,5 +155,8 @@ public class WifiReceiver extends BroadcastReceiver {
             }
         }
         stopTimer();
+        m_isScanning = false;
     }
+
+
 }
