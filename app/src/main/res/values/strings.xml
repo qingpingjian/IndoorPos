@@ -16,9 +16,7 @@
     <string name="wifi_orient">Orient(\u00B0)</string>
     <string name="wifi_scan">Scan</string>
     <string name="wifi_stop">Stop</string>
-    <string name="wifi_status">ScanStatus</string>
-    <string name="wifi_status_ready">Ready</string>
-    <string name="wifi_status_start">Start...</string>
+    <string name="wifi_status">Please Open WiFi First.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

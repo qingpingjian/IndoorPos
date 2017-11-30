@@ -16,9 +16,7 @@
     <string name="wifi_orient">方向(\u00B0)</string>
     <string name="wifi_scan">扫描</string>
     <string name="wifi_stop">停止</string>
-    <string name="wifi_status">状态</string>
-    <string name="wifi_status_ready">预备</string>
-    <string name="wifi_status_start">扫描中...</string>
+    <string name="wifi_status">请先打开WiFi连接.</string>
 
     <string name="navigation_drawer_open">打开侧边栏</string>
     <string name="navigation_drawer_close">关闭侧边栏</string>

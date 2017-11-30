@@ -1,10 +1,11 @@
 package com.nku.netlab.pete.indoorpos;
 
+import android.content.Context;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -13,13 +14,15 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.nku.netlab.pete.indoorpos.listener.WifiReceiver;
+import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, WifiFragment.OnFragmentWiFiListener {
 
     private static final String LOG_TAG = "indoorpos";
 
@@ -32,18 +35,18 @@ public class MainActivity extends AppCompatActivity
         AtomicBoolean finishing;
     }
     private State state;
-    public static final int WIFI_TAP_POS = 0;
-    public static final int PDR_TAP_POS = 1;
-
-    public static final int WIFI_DEFAULT_SCAN_TYPE = 0;
-    public static final int WIFI_DEFAULT_SCAN_NUM = 10;
+    public static final int WIFI_TAB_POS = 0;
+    public static final int PDR_TAB_POS = 1;
+    public static final String [] fragTags = new String[] {
+            "wifi_tab",
+            "pdr_tab",
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mainActivity = this;
-
         setupMenuDrawer();
 
 //        TODO: remove floating action button
@@ -55,14 +58,17 @@ public class MainActivity extends AppCompatActivity
 //                        .setAction("Action", null).show();
 //            }
 //        });
-        state = new State();
-        state.finishing = new AtomicBoolean(false);
         if (savedInstanceState == null) {
-            setupFragments();
+            state = new State();
+            state.finishing = new AtomicBoolean(false);
+            state.wifiReceiver = new WifiReceiver(this);
+            state.currentFragIndex = -1; // I want to add fragment in selectFragment method
+            // show the wifi training fragment by default
+            selectFragment(WIFI_TAB_POS);
+            if (savedInstanceState == null) {
+                setupFragments();
+            }
         }
-        state.currentFragIndex = -1; // I want to add fragment in selectFragment method
-        // show the wifi training fragment by default
-        selectFragment(WIFI_TAP_POS);
     }
 
     private void setupMenuDrawer() {
@@ -81,10 +87,10 @@ public class MainActivity extends AppCompatActivity
     }
     private void setupFragments() {
         info("Creating WifiFragment");
-        state.fragList[WIFI_TAP_POS] = WifiFragment.newInstance(WIFI_DEFAULT_SCAN_TYPE, WIFI_DEFAULT_SCAN_NUM);
+        state.fragList[WIFI_TAB_POS] = WifiFragment.newInstance();
 
         info("Creating PdrFragment");
-        state.fragList[PDR_TAP_POS] = PdrFragment.newInstance();
+        state.fragList[PDR_TAB_POS] = PdrFragment.newInstance();
     }
 
     @Override
@@ -157,14 +163,13 @@ public class MainActivity extends AppCompatActivity
         Fragment frag = state.fragList[fragIndex];
         FragmentManager manager = getSupportFragmentManager();
         try {
-            manager.beginTransaction().replace(R.id.position_fragment, frag).commit();
+            manager.beginTransaction().replace(R.id.position_fragment, frag, fragTags[fragIndex]).commit();
         }
         catch (final NullPointerException | IllegalStateException ex) {
             final String message = "exception in fragment switch: " + ex.getMessage();
             error(message, ex);
         }
         state.currentFragIndex = fragIndex;
-
         final String[] fragmentTitles = new String[]{
                 getString(R.string.nav_wifi_title),
                 getString(R.string.nav_pdr_title),
@@ -187,6 +192,41 @@ public class MainActivity extends AppCompatActivity
         // Give some time to say bye
         sleep(50);
         super.finish();
+    }
+    @Override
+    public boolean onStartScanWifi(WifiScanConfig config) {
+        WifiManager manager = (WifiManager) this.mainActivity.getSystemService(Context.WIFI_SERVICE);
+        boolean wifiFlag = manager.isWifiEnabled();
+        if (wifiFlag) {
+            state.wifiReceiver.startScan(config);
+        }
+        else {
+            showToast(getString(R.string.wifi_status));
+        }
+        return wifiFlag;
+    }
+
+    @Override
+    public void onStopScanWifi() {
+        state.wifiReceiver.stopScan();
+    }
+
+    public void updateWifiScanStatus(int scanNum) {
+        FragmentManager manager = getSupportFragmentManager();
+        WifiFragment wifiFrag = (WifiFragment) state.fragList[WIFI_TAB_POS];
+        wifiFrag.updateWifiScanStatus(scanNum);
+    }
+
+    /**
+     * Show toast message despite of non-UI threads.
+     * */
+    public void showToast(final String toastMsg)
+    {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(MainActivity.this, toastMsg, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     public static void sleep(final long sleepInMsc) {

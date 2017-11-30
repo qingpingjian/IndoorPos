@@ -1,6 +1,9 @@
 package com.nku.netlab.pete.indoorpos;
 
 
+import android.app.Activity;
+import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -14,29 +17,55 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
+
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class WifiFragment extends Fragment implements View.OnClickListener{
     // the fragment initialization parameters
-    private static final String ARG_SCANTYPE = "wifi_scan_type";
-    private static final String ARG_SCANNUM = "wifi_scan_num";
-    private RadioGroup m_rgpScanType;
+    private static final String ARG_WIFI_SCAN = "wifi_scan_config";
+
+    private OnFragmentWiFiListener m_WifiListener;
     private RadioButton m_rbDataChange, m_rbFixTime;
     private EditText m_edtScanNum;
     private EditText m_edtX;
     private EditText m_edtY;
-//    private EditText m_edtOrient;
+    private EditText m_edtOrient;
     private ProgressBar m_pbScanStatus;
     private Button m_btnScan;
     private Button m_btnStop;
 
-    public static WifiFragment newInstance(int scanType, int scanNum) {
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     */
+    public interface OnFragmentWiFiListener {
+        // TODO: Update argument type and name
+        public boolean onStartScanWifi(WifiScanConfig config);
+        public void onStopScanWifi();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        m_WifiListener = null;
+        if (context instanceof OnFragmentWiFiListener) {
+            m_WifiListener = (OnFragmentWiFiListener)context;
+        }
+        else if (getActivity() instanceof OnFragmentWiFiListener) {
+            m_WifiListener = (OnFragmentWiFiListener)getActivity();
+        }
+    }
+
+    public static WifiFragment newInstance() {
         WifiFragment wifiFrag = new WifiFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_SCANTYPE, scanType);
-        args.putInt(ARG_SCANNUM, scanNum);
+        WifiScanConfig config = new WifiScanConfig();
+        args.putSerializable(ARG_WIFI_SCAN, config);
         wifiFrag.setArguments(args);
         return wifiFrag;
     }
@@ -57,27 +86,26 @@ public class WifiFragment extends Fragment implements View.OnClickListener{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         final View view = inflater.inflate(R.layout.fragment_wifi, container, false);
-        m_rbDataChange = view.findViewById(R.id.rbDataChange);
-        m_rbFixTime = view.findViewById(R.id.rbFixTime);
+        m_rbDataChange = (RadioButton) view.findViewById(R.id.rbDataChange);
+        m_rbFixTime = (RadioButton) view.findViewById(R.id.rbFixTime);
         m_edtScanNum = (EditText)view.findViewById(R.id.edtScanNum);
         m_edtX = (EditText) view.findViewById(R.id.edtX);
         m_edtY = (EditText) view.findViewById(R.id.edtY);
-//        m_edtOrient = (EditText) view.findViewById(R.id.edtOrient);
-        m_pbScanStatus = view.findViewById(R.id.pbScanStatus);
+        m_edtOrient = (EditText) view.findViewById(R.id.edtOrient);
+        m_pbScanStatus = (ProgressBar) view.findViewById(R.id.pbScanStatus);
         m_btnScan = (Button) view.findViewById(R.id.btnScan);
         m_btnStop = (Button) view.findViewById(R.id.btnStop);
         m_btnScan.setOnClickListener(this);
         m_btnStop.setOnClickListener(this);
         Bundle args = getArguments();
         if (args != null) {
-            int scanType = args.getInt(ARG_SCANTYPE);
-            if (scanType == 0)
+            WifiScanConfig config = (WifiScanConfig) args.getSerializable(ARG_WIFI_SCAN);
+            if (config.getScanType() == 0)
                 m_rbDataChange.setChecked(true);
             else
                 m_rbFixTime.setChecked(true);
-            int scanNum = args.getInt(ARG_SCANNUM);
-            m_edtScanNum.setText("" + scanNum);
-            m_pbScanStatus.setMax(scanNum);
+            m_edtScanNum.setText("" + config.getScanNum());
+            m_pbScanStatus.setMax(config.getScanNum());
         }
         MainActivity.info("WiFi: createView.");
         return view;
@@ -87,22 +115,49 @@ public class WifiFragment extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         int id = v.getId();
         if(id == R.id.btnScan) {
-            m_btnScan.setEnabled(false);
-            m_btnStop.setEnabled(true);
-
+            int scanNum = Integer.getInteger(m_edtScanNum.getText().toString().trim());
+            WifiScanConfig config = new WifiScanConfig();
+            config.setScanType(m_rbDataChange.isChecked() ? 0 : 1);
+            config.setScanNum(scanNum);
+            config.setCoordX(Float.valueOf(m_edtX.getText().toString().trim()));
+            config.setCoordY(Float.valueOf(m_edtY.getText().toString().trim()));
+            if (m_WifiListener.onStartScanWifi(config)) {
+                m_btnScan.setEnabled(false);
+                m_btnStop.setEnabled(true);
+                m_pbScanStatus.setMax(scanNum);
+                m_pbScanStatus.setVisibility(View.VISIBLE);
+                m_pbScanStatus.setProgress(0);
+            }
             MainActivity.info("Scan Button clicked.");
-            Toast.makeText(getActivity().getApplicationContext(), "Scan Button clicked",
-                    Toast.LENGTH_LONG).show();
         }
         else if (id == R.id.btnStop) {
             m_btnStop.setEnabled(false);
             m_btnScan.setEnabled(true);
+            m_pbScanStatus.setVisibility(View.INVISIBLE);
+            m_WifiListener.onStopScanWifi();
             MainActivity.info("Stop Button clicked.");
-            Toast.makeText(getActivity().getApplicationContext(), "Stop Button clicked",
-                    Toast.LENGTH_LONG).show();
         }
     }
 
+    public void updateWifiScanStatus(int wifiNum) {
+        int scanNum = m_pbScanStatus.getMax();
+        if (wifiNum <= 0 || wifiNum > scanNum)
+            return;
+        m_pbScanStatus.setProgress(wifiNum);
+        if (wifiNum == scanNum) {
+            m_btnStop.setEnabled(false);
+            m_btnScan.setEnabled(true);
+            m_pbScanStatus.setVisibility(View.INVISIBLE);
+            MainActivity.info("Scan Finished.");
+            Toast.makeText(getActivity().getApplicationContext(), String.format("WiFi Scan Finished, we got %d records", scanNum),
+                    Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    public void UpdateOrientation(float orientInDegree) {
+        m_edtOrient.setText(String.format("%.5f", orientInDegree));
+    }
 
     @Override
     public void onStart() {
