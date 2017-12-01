@@ -68,10 +68,11 @@ public class WifiReceiver extends BroadcastReceiver {
             ScanResult wifiRecord = null;
             for (int i = 0; i < result.size(); i++) {
                 wifiRecord = result.get(i);
-                sb.append(wifiRecord.BSSID + ":" + wifiRecord.level);
+                sb.append(wifiRecord.BSSID + "|" + wifiRecord.level);
                 if (i < result.size() - 1)
-                    sb.append("|");
+                    sb.append(";");
             }
+            sb.append("\n");
             m_wifiRSSList.add(sb.toString());
             int recordNum = m_wifiRSSList.size();
             // To update the view of wifi fragment
