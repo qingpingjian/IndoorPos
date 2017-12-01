@@ -17,6 +17,7 @@
     <string name="wifi_scan">扫描</string>
     <string name="wifi_stop">停止</string>
     <string name="wifi_status">请先打开WiFi连接.</string>
+    <string name="wifi_scan_finished">WiFi扫描完成, 共获取%d条指纹</string>
 
     <string name="navigation_drawer_open">打开侧边栏</string>
     <string name="navigation_drawer_close">关闭侧边栏</string>

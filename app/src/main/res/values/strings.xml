@@ -17,6 +17,7 @@
     <string name="wifi_scan">Scan</string>
     <string name="wifi_stop">Stop</string>
     <string name="wifi_status">Please Open WiFi First.</string>
+    <string name="wifi_scan_finished">WiFi Scan Finished, we got %d records</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

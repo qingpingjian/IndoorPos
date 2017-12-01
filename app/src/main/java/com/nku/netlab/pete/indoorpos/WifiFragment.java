@@ -145,7 +145,9 @@ public class WifiFragment extends Fragment implements View.OnClickListener{
             m_btnScan.setEnabled(true);
             m_pbScanStatus.setVisibility(View.INVISIBLE);
             MainActivity.info("Scan Finished.");
-            Toast.makeText(getActivity().getApplicationContext(), String.format("WiFi Scan Finished, we got %d records", scanNum),
+            Context context = getActivity().getApplicationContext();
+            Toast.makeText(context,
+                    String.format(context.getString(R.string.wifi_scan_finished), scanNum),
                     Toast.LENGTH_LONG).show();
         }
 
