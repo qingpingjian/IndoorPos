@@ -11,6 +11,7 @@ import android.os.Message;
 
 import com.nku.netlab.pete.indoorpos.MainActivity;
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
+import com.nku.netlab.pete.indoorpos.util.SDiskHelper;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -27,6 +28,7 @@ public class WifiReceiver extends BroadcastReceiver {
     private TimerTask m_scanTimerTask ;
     private Handler m_scanHandler;
     private WifiScanConfig m_config;
+    private SDiskHelper m_sdHelper;
 
     private class ScanHandler extends Handler {
         public void handleMessage(Message msg) {
@@ -44,6 +46,7 @@ public class WifiReceiver extends BroadcastReceiver {
         this.m_scanTimerTask = null;
         this.m_scanHandler = new ScanHandler();
         this.m_config = null;
+        this.m_sdHelper = new SDiskHelper();
     }
 
     @Override
@@ -76,8 +79,19 @@ public class WifiReceiver extends BroadcastReceiver {
             // We have enough wifi rss records
             if (recordNum >= m_config.getScanNum()) {
                 stopScan();
-                // TODO: Now we need to save the scan results.
-
+                // Now we need to save the scan results.
+                new Thread() {
+                    @Override
+                    public void run() {
+                        super.run();
+                        try {
+                            m_sdHelper.toSaveWifiMapper(m_wifiRSSList);
+                        }
+                        catch (Exception ex) {
+                            MainActivity.warn("WiFiReceiver failed to save rss data.", ex);
+                        }
+                    }
+                }.start();
             }
             else {
                 wifiManager.startScan();
