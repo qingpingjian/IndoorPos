@@ -31,6 +31,10 @@ public class WifiScanConfig implements Serializable{
     public void setScanNum(int scanNum) {
         this.scanNum = scanNum;
     }
+    // TODO: we need to add identifier to building maps
+    public String getFloorID() {
+        return "1305";
+    }
 
     public float getCoordX() {
         return coordX;

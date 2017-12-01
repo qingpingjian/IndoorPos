@@ -16,6 +16,10 @@ public class SDiskHelper {
     private static final String DIRECTORY_WIFI_MAPPER = "wifimapper";
     private static final String FILE_EXTENTION = "csv";
     private static final String WIFI_MAPPER_HEADLINE = "floorid,coordx,coordy,timestamp,wifiinfos,orient\n";
+    private static final String ACCE_PDR_HEADLINE = "floorid,timestamp,acce_x,acce_y,acce_z\n";
+    private static final String GYRO_PDR_HEADLINE = "floorid,timestamp,gyro_x,gyro_y,gyro_z\n";
+    private static final String MAGN_PDR_HEADLINE = "floorid,timestamp,magn_x,magn_y,magn_z\n";
+    private static final String COMP_PDR_HEADLINE = "floorid,timestamp,azimut,pitch,roll\n";
 
     private void doCreateFile(File file) throws IOException {
         if (!file.exists()) {
@@ -52,6 +56,21 @@ public class SDiskHelper {
             sb.append(wifiRecord);
         }
         FileWriter fStream = new FileWriter(wifiFile);
+        BufferedWriter bufWriter = new BufferedWriter(fStream);
+        bufWriter.write(sb.toString());
+        bufWriter.close();
+    }
+
+    public void toSaveAcceSensor() throws Exception {
+        File acceFile = new File("acce.csv");
+        if (!acceFile.exists()) {
+            doCreateFile(acceFile);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(ACCE_PDR_HEADLINE);
+
+        FileWriter fStream = new FileWriter(acceFile);
         BufferedWriter bufWriter = new BufferedWriter(fStream);
         bufWriter.write(sb.toString());
         bufWriter.close();

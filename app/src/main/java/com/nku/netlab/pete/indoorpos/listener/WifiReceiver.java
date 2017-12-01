@@ -61,9 +61,17 @@ public class WifiReceiver extends BroadcastReceiver {
         List<ScanResult> result = wifiManager.getScanResults();
         int wifiSize = result.size();
         if (wifiSize > 0) {
-            Calendar calendar = Calendar.getInstance();
+            // "floorid,coordx,coordy,timestamp,wifiinfos,orient"
             StringBuilder sb = new StringBuilder();
-            sb.append(calendar.getTimeInMillis());
+            sb.append(m_config.getFloorID());
+            sb.append(",");
+            sb.append(String.format("%.3f", m_config.getCoordX()));
+            sb.append(",");
+            sb.append(String.format("%.3f", m_config.getCoordY()));
+            sb.append(",");
+            Calendar calendar = Calendar.getInstance();
+            long currentTime = calendar.getTimeInMillis();
+            sb.append(currentTime);
             sb.append(",");
             ScanResult wifiRecord = null;
             for (int i = 0; i < result.size(); i++) {
@@ -72,6 +80,8 @@ public class WifiReceiver extends BroadcastReceiver {
                 if (i < result.size() - 1)
                     sb.append(";");
             }
+            sb.append(",");
+            sb.append(String.format("%.3f", mainActivity.getOrientByTimeStamp(currentTime)));
             sb.append("\n");
             m_wifiRSSList.add(sb.toString());
             int recordNum = m_wifiRSSList.size();

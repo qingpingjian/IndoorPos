@@ -219,6 +219,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void updateWifiScanOrientation() {
+        // TODO: pass orientation to wififragment
+    }
+
+    public float getOrientByTimeStamp(long timeInMills) {
+        return 0.0f;
+    }
     /**
      * Show toast message despite of non-UI threads.
      * */
