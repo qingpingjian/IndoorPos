@@ -13,13 +13,14 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.nku.netlab.pete.indoorpos.listener.OrientationListener;
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WifiFragment extends Fragment implements View.OnClickListener{
+public class WifiFragment extends Fragment implements View.OnClickListener, OrientationListener {
     // the fragment initialization parameters
     private static final String ARG_WIFI_SCAN = "wifi_scan_config";
 
@@ -153,7 +154,8 @@ public class WifiFragment extends Fragment implements View.OnClickListener{
 
     }
 
-    public void UpdateOrientation(float orientInDegree) {
+    @Override
+    public void onOrientationChanged(double orientInDegree) {
         m_edtOrient.setText(String.format("%.5f", orientInDegree));
     }
 

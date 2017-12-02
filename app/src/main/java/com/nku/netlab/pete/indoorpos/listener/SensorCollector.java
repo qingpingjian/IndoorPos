@@ -93,6 +93,8 @@ public class SensorCollector implements SensorEventListener {
                     sb.append(azimut);
                     sb.append(",0,0\n");
                     m_sensorValueLists[3].add(sb.toString());
+                    // Update UI orientation
+                    mainActivity.updateFragmentOrientation(Math.toDegrees(azimut + Math.PI * 2.0) % 360);
                 }
             }
         }
@@ -125,6 +127,8 @@ public class SensorCollector implements SensorEventListener {
                     sb.append(azimut);
                     sb.append(",0,0\n");
                     m_sensorValueLists[3].add(sb.toString());
+                    // Update UI orientation
+                    mainActivity.updateFragmentOrientation(Math.toDegrees(azimut + Math.PI * 2.0) % 360);
                 }
             }
         }
