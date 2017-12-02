@@ -13,14 +13,14 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
-import com.nku.netlab.pete.indoorpos.listener.OrientationListener;
+import com.nku.netlab.pete.indoorpos.listener.UIOrientationUpdater;
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WifiFragment extends Fragment implements View.OnClickListener, OrientationListener {
+public class WifiFragment extends Fragment implements View.OnClickListener, UIOrientationUpdater {
     // the fragment initialization parameters
     private static final String ARG_WIFI_SCAN = "wifi_scan_config";
 

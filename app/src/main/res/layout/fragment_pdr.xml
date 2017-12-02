@@ -5,9 +5,23 @@
     tools:context="com.nku.netlab.pete.indoorpos.PdrFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_pdr_fragment" />
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/hello_pdr_fragment" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:text="@string/hello_pdr_fragment"
+            android:id="@+id/tvOrient"
+            android:layout_gravity="center_horizontal|top" />
+    </LinearLayout>
 
 </FrameLayout>

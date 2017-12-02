@@ -16,7 +16,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.nku.netlab.pete.indoorpos.listener.OrientationListener;
+import com.nku.netlab.pete.indoorpos.listener.UIOrientationListener;
+import com.nku.netlab.pete.indoorpos.listener.UIOrientationUpdater;
 import com.nku.netlab.pete.indoorpos.listener.SensorCollector;
 import com.nku.netlab.pete.indoorpos.listener.WifiReceiver;
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity
     public static class State {
         WifiReceiver wifiReceiver;
         SensorCollector sensorCollector;
+        UIOrientationListener orientationListener;
         final Fragment[] fragList = new Fragment[2];
         int currentFragIndex;
         AtomicBoolean finishing;
@@ -64,6 +66,7 @@ public class MainActivity extends AppCompatActivity
             state.finishing = new AtomicBoolean(false);
             state.wifiReceiver = new WifiReceiver(this);
             state.sensorCollector = new SensorCollector(this);
+            state.orientationListener = new UIOrientationListener(this);
             setupFragments();
             state.currentFragIndex = -1; // I want to add fragment in selectFragment method
             // show the wifi training fragment by default
@@ -178,6 +181,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        state.orientationListener.registerEventListener();
+    }
+
+    @Override
+    protected void onPause() {
+        state.orientationListener.unregisterEventListener();
+        super.onPause();
+    }
+
+    @Override
     public boolean isFinishing() {
         return state.finishing.get();
     }
@@ -200,8 +215,6 @@ public class MainActivity extends AppCompatActivity
         boolean wifiFlag = manager.isWifiEnabled();
         if (wifiFlag) {
             state.wifiReceiver.startScan(config);
-            // TODO: need to reorganize the code for sensors
-            state.sensorCollector.registerEventListener();
         }
         else {
             showToast(getString(R.string.wifi_status));
@@ -213,7 +226,6 @@ public class MainActivity extends AppCompatActivity
     public void onStopScanWifi() {
         if (state != null) {
             state.wifiReceiver.stopScan();
-            state.sensorCollector.unregisterEventListener();
         }
     }
 
@@ -227,8 +239,8 @@ public class MainActivity extends AppCompatActivity
     public void updateFragmentOrientation(double orient) {
         if (state != null) {
             Fragment frag = state.fragList[state.currentFragIndex];
-            if (frag instanceof OrientationListener) {
-                OrientationListener fragOrientListener = (OrientationListener)frag;
+            if (frag instanceof UIOrientationUpdater) {
+                UIOrientationUpdater fragOrientListener = (UIOrientationUpdater)frag;
                 fragOrientListener.onOrientationChanged(orient);
             }
         }

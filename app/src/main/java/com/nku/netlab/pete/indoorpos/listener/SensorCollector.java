@@ -44,17 +44,17 @@ public class SensorCollector implements SensorEventListener {
                 m_sensorValueLists[i].clear();
             }
         }
-        if (this.sensorManager != null) {
+        if (sensorManager != null) {
             for (int i = 0; i < 3; i++) {
-                this.sensorManager.registerListener(this, m_sensors[i], SensorManager.SENSOR_DELAY_GAME);
+                sensorManager.registerListener(this, m_sensors[i], SensorManager.SENSOR_DELAY_GAME);
             }
         }
     }
 
     public void unregisterEventListener() {
-        if (this.sensorManager != null) {
+        if (sensorManager != null) {
             for (int i = 0; i < 3; i++) {
-                this.sensorManager.unregisterListener(this, m_sensors[i]);
+                sensorManager.unregisterListener(this, m_sensors[i]);
             }
         }
     }
@@ -93,8 +93,6 @@ public class SensorCollector implements SensorEventListener {
                     sb.append(azimut);
                     sb.append(",0,0\n");
                     m_sensorValueLists[3].add(sb.toString());
-                    // Update UI orientation
-                    mainActivity.updateFragmentOrientation(Math.toDegrees(azimut + Math.PI * 2.0) % 360);
                 }
             }
         }
@@ -127,8 +125,6 @@ public class SensorCollector implements SensorEventListener {
                     sb.append(azimut);
                     sb.append(",0,0\n");
                     m_sensorValueLists[3].add(sb.toString());
-                    // Update UI orientation
-                    mainActivity.updateFragmentOrientation(Math.toDegrees(azimut + Math.PI * 2.0) % 360);
                 }
             }
         }
