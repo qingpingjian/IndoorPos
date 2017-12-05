@@ -29,8 +29,8 @@ public class UIOrientationListener implements SensorEventListener {
 
     public void registerEventListener() {
         if (sensorManager != null) {
-            sensorManager.registerListener(this, m_sensors[0], SensorManager.SENSOR_DELAY_UI);
-            sensorManager.registerListener(this, m_sensors[1], SensorManager.SENSOR_DELAY_UI);
+            sensorManager.registerListener(this, m_sensors[0], SensorManager.SENSOR_DELAY_NORMAL);
+            sensorManager.registerListener(this, m_sensors[1], SensorManager.SENSOR_DELAY_NORMAL);
         }
     }
 

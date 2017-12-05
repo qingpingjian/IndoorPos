@@ -5,10 +5,11 @@
     <string name="nav_wifi_scan">指纹地图</string>
     <string name="nav_pdr">航位推算</string>
     <string name="nav_exit">退出</string>
+    <string name="key_back_twice">请按两次回退键退出</string>
     <string name="nav_wifi_title">更新指纹地图</string>
     <string name="nav_pdr_title">行人航位推算</string>
     <!-- WiFi Fragment Components -->
-    <string name="wifi_scan_type">方式</string>
+    <string name="wifi_scan_cycle">周期</string>
     <string name="wifi_scan_fix_time">每隔一秒</string>
     <string name="wifi_scan_data_change">数据变化</string>
     <string name="wifi_scan_num">次数</string>

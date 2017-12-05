@@ -12,6 +12,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -22,6 +23,8 @@ import com.nku.netlab.pete.indoorpos.listener.SensorCollector;
 import com.nku.netlab.pete.indoorpos.listener.WifiReceiver;
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity
@@ -44,6 +47,9 @@ public class MainActivity extends AppCompatActivity
             "wifi_tab",
             "pdr_tab",
     };
+
+    private boolean isQuit;
+    private Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +77,8 @@ public class MainActivity extends AppCompatActivity
             state.currentFragIndex = -1; // I want to add fragment in selectFragment method
             // show the wifi training fragment by default
             selectFragment(WIFI_TAB_POS);
+            isQuit = false;
+            timer = new Timer();
         //}
     }
 
@@ -106,27 +114,27 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        // Handle action bar item clicks here. The action bar will
+//        // automatically handle clicks on the Home/Up button, so long
+//        // as you specify a parent activity in AndroidManifest.xml.
+//        int id = item.getItemId();
+//
+//        //noinspection SimplifiableIfStatement
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
+//
+//        return super.onOptionsItemSelected(item);
+//    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -203,18 +211,43 @@ public class MainActivity extends AppCompatActivity
         final boolean wasFinishing = state.finishing.getAndSet(true);
         if (!wasFinishing) { // The wasFinishing is true which means finish twice
             state.wifiReceiver.stopScan();
+            state.sensorCollector.unregisterEventListener();
             // Give some time to say bye
             sleep(50);
         }
 
         super.finish();
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (isQuit == false) {
+                isQuit = true;
+                showToast(getString(R.string.key_back_twice));
+                TimerTask task = null;
+                task = new TimerTask() {
+                    @Override
+                    public void run() {
+                        isQuit = false;
+                    }
+                };
+                timer.schedule(task, 2000);
+            } else {
+                finish();
+                System.exit(0);
+            }
+        }
+        return true;
+    }
+
     @Override
     public boolean onStartScanWifi(WifiScanConfig config) {
         WifiManager manager = (WifiManager) this.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         boolean wifiFlag = manager.isWifiEnabled();
         if (wifiFlag) {
             state.wifiReceiver.startScan(config);
+            state.sensorCollector.registerEventListener();
         }
         else {
             showToast(getString(R.string.wifi_status));
@@ -226,6 +259,7 @@ public class MainActivity extends AppCompatActivity
     public void onStopScanWifi() {
         if (state != null) {
             state.wifiReceiver.stopScan();
+            state.sensorCollector.unregisterEventListener();
         }
     }
 
@@ -246,8 +280,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public float getOrientByTimeStamp(long timeInMills) {
-        return 0.0f;
+    public double getOrientByTimeStamp(long startTimeInMills, long endTimeInMills) {
+        double orient = 0.0;
+        if (state != null) {
+            orient = state.sensorCollector.getOrientation(startTimeInMills, endTimeInMills);
+        }
+        return orient;
     }
     /**
      * Show toast message despite of non-UI threads.

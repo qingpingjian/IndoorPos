@@ -18,10 +18,31 @@ public class SensorCollector implements SensorEventListener {
     private SensorManager sensorManager;
     private Sensor [] m_sensors;    // 0 Accelerometer, 1 Gyroscope, 2 Magnetometer, 3 Compass
     private ArrayList<String>[] m_sensorValueLists;
+    private ArrayList<OrientRecord> m_orientValueList;
     // For orientation calculation, we keep the last sensor values.
     private float [] m_lastAcceValue;
     private float [] m_lastMagnValue;
 
+    private class OrientRecord {
+        long timeStamp;
+        float azimut;
+
+        public long getTimeStamp() {
+            return timeStamp;
+        }
+
+        public void setTimeStamp(long timeStamp) {
+            this.timeStamp = timeStamp;
+        }
+
+        public float getAzimut() {
+            return azimut;
+        }
+
+        public void setAzimut(float azimut) {
+            this.azimut = azimut;
+        }
+    }
 
     public SensorCollector(final MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -31,6 +52,8 @@ public class SensorCollector implements SensorEventListener {
         m_sensors[1] = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         m_sensors[2] = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         m_sensorValueLists = new ArrayList[4];
+        m_orientValueList = new ArrayList<>();
+
         for (int i = 0; i < 4; i++) {
             m_sensorValueLists[i] = new ArrayList<>();
         }
@@ -93,6 +116,11 @@ public class SensorCollector implements SensorEventListener {
                     sb.append(azimut);
                     sb.append(",0,0\n");
                     m_sensorValueLists[3].add(sb.toString());
+                    OrientRecord or = new OrientRecord();
+                    or.setTimeStamp(timeStamp);
+                    azimut = azimut > 0 ? azimut : (float)(azimut + Math.PI * 2.0);
+                    or.setAzimut(azimut);
+                    m_orientValueList.add(or);
                 }
             }
         }
@@ -125,6 +153,11 @@ public class SensorCollector implements SensorEventListener {
                     sb.append(azimut);
                     sb.append(",0,0\n");
                     m_sensorValueLists[3].add(sb.toString());
+                    OrientRecord or = new OrientRecord();
+                    or.setTimeStamp(timeStamp);
+                    azimut = azimut > 0 ? azimut : (float)(azimut + Math.PI * 2.0);
+                    or.setAzimut(azimut);
+                    m_orientValueList.add(or);
                 }
             }
         }
@@ -142,6 +175,42 @@ public class SensorCollector implements SensorEventListener {
             azimut = orientation[0];
         }
         return azimut;
+    }
+
+    /**
+     * Get mean of all azimute from > =startTimeInMills to <=endTimeInMills
+     * **/
+    public double getOrientation(long startTimeInMills, long endTimeInMills) {
+        if (endTimeInMills < startTimeInMills)
+            return 0.0;
+        int startIndex = 0;
+        int endIndex = 0;
+        int size = m_orientValueList.size();
+        long timeStamp;
+        for (int i = size - 1; i >= 0; i--) {
+            timeStamp = m_orientValueList.get(i).getTimeStamp();
+            if (endTimeInMills >= timeStamp){
+                endIndex = i;
+                break;
+            }
+        }
+        for (int j = endIndex; j >= 0; j--) {
+            timeStamp = m_orientValueList.get(j).getTimeStamp();
+            if (timeStamp < startTimeInMills) {
+                startIndex = j + 1;
+                break;
+            }
+        }
+        // Calculate the average of a set of circular data
+        double x = 0;
+        double y = 0;
+        for (int k = startIndex; k <= endIndex; k++) {
+            x += Math.cos(m_orientValueList.get(k).getAzimut());
+            y += Math.sin(m_orientValueList.get(k).getAzimut());
+        }
+        double azimutAvg = Math.atan2(y, x);
+        azimutAvg = azimutAvg < 0 ? azimutAvg + Math.PI * 2.0 : azimutAvg;
+        return azimutAvg;
     }
 
     @Override
