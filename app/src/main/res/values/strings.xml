@@ -5,7 +5,7 @@
     <string name="nav_wifi_scan">WiFi Scan</string>
     <string name="nav_pdr">PDR</string>
     <string name="nav_exit">Exit</string>
-    <string name="key_back_twice">Please press twice to exit</string>
+    <string name="key_back_twice">Press again to exit</string>
     <string name="nav_wifi_title">WiFi Fingerprint Update</string>
     <string name="nav_pdr_title">PDR</string>
     <!-- WiFi Fragment Components -->

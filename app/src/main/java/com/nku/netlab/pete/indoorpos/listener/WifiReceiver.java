@@ -248,13 +248,11 @@ public class WifiReceiver extends BroadcastReceiver {
     public void stopScan() {
         if (!m_isScanning)
             return;
-        if (m_config.getScanType() == WifiScanConfig.WIFI_SCAN_DATA_CHANGE) {
-            try {
-                this.mainActivity.unregisterReceiver(this);
-            }
-            catch (Exception ex) {
-                MainActivity.warn("WiFiReceiver failed to unregister.", ex);
-            }
+        try {
+            this.mainActivity.unregisterReceiver(this);
+        }
+        catch (Exception ex) {
+            MainActivity.warn("WiFiReceiver failed to unregister.", ex);
         }
 //        stopTimer();
         m_isScanning = false;

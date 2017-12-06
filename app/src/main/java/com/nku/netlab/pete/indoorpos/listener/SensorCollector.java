@@ -5,23 +5,32 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.Message;
+
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.nku.netlab.pete.indoorpos.MainActivity;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-
 public class SensorCollector implements SensorEventListener {
-    public static final float ORIENTATION_DISABLE = -100f;
+    private static final long MS2NS = 1000;
+    private static final float ORIENTATION_DISABLE = -100.0f;
 
     private MainActivity mainActivity;
     private SensorManager sensorManager;
-    private Sensor [] m_sensors;    // 0 Accelerometer, 1 Gyroscope, 2 Magnetometer, 3 Compass
+    private Sensor [] m_sensors;    // 0 Accelerometer, 1 Gyroscope, 2 Magnetometer, "3 Compass"
+    private boolean m_sensorFlag;
     private ArrayList<String>[] m_sensorValueLists;
     private ArrayList<OrientRecord> m_orientValueList;
     // For orientation calculation, we keep the last sensor values.
     private float [] m_lastAcceValue;
     private float [] m_lastMagnValue;
+    private Timer m_orientTimer;
+    private TimerTask m_orientTimerTask;
+    private OrientUpdateHandler m_orientHandler;
+    private double m_currentOrientInDegree;
 
     private class OrientRecord {
         long timeStamp;
@@ -44,6 +53,14 @@ public class SensorCollector implements SensorEventListener {
         }
     }
 
+    private class OrientUpdateHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            mainActivity.updateFragmentOrientation(m_currentOrientInDegree);
+            super.handleMessage(msg);
+        }
+    }
+
     public SensorCollector(final MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         this.sensorManager = (SensorManager) this.mainActivity.getSystemService(Context.SENSOR_SERVICE);
@@ -51,6 +68,7 @@ public class SensorCollector implements SensorEventListener {
         m_sensors[0] = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         m_sensors[1] = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         m_sensors[2] = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        m_sensorFlag = false;
         m_sensorValueLists = new ArrayList[4];
         m_orientValueList = new ArrayList<>();
 
@@ -59,26 +77,73 @@ public class SensorCollector implements SensorEventListener {
         }
         m_lastAcceValue = new float[3];
         m_lastMagnValue = new float[3];
+        m_orientHandler = new OrientUpdateHandler();
+    }
+
+    private void startOrientUpdate() {
+        if (m_orientTimer == null) {
+            m_orientTimer = new Timer();
+        }
+        if (m_orientTimerTask == null) {
+            m_orientTimerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    Message message = new Message();
+                    message.what = 1;
+                    m_orientHandler.sendMessage(message);
+                }
+            };
+        }
+        if (m_orientTimer != null && m_orientTimerTask != null) {
+            // Start updating the orientation view for users
+            m_orientTimer.schedule(m_orientTimerTask, 100, 200);
+        }
+    }
+
+    private void stopOrientUpdate() {
+        if (m_orientTimer != null) {
+            m_orientTimer.cancel();
+            m_orientTimer = null;
+        }
+        if (m_orientTimerTask != null) {
+            m_orientTimerTask.cancel();
+            m_orientTimerTask = null;
+        }
     }
 
     public void registerEventListener() {
-        synchronized (this) {
-            for (int i = 0; i < 4; i++) {
-                m_sensorValueLists[i].clear();
-            }
-        }
         if (sensorManager != null) {
             for (int i = 0; i < 3; i++) {
                 sensorManager.registerListener(this, m_sensors[i], SensorManager.SENSOR_DELAY_GAME);
             }
         }
+        // Start the orientation update in the meanwhile
+        startOrientUpdate();
     }
 
     public void unregisterEventListener() {
+        // Stop the orientation update firstly
+        stopOrientUpdate();
         if (sensorManager != null) {
             for (int i = 0; i < 3; i++) {
                 sensorManager.unregisterListener(this, m_sensors[i]);
             }
+        }
+    }
+
+    public void startRecordSensors() {
+        synchronized (this) {
+            for (int i = 0; i < 4; i++) {
+                m_sensorValueLists[i].clear();
+            }
+            m_orientValueList.clear();
+            m_sensorFlag = true;
+        }
+    }
+
+    public void stopRecordSensors() {
+        synchronized (this) {
+            m_sensorFlag = false;
         }
     }
 
@@ -87,14 +152,36 @@ public class SensorCollector implements SensorEventListener {
         Sensor sensor = event.sensor;
         if (sensor == null)
             return;
+        int sensorType = sensor.getType();
+        if (sensorType == sensor.TYPE_ACCELEROMETER) {
+            System.arraycopy(event.values, 0, m_lastAcceValue, 0, event.values.length);
+            float azimut = calculateOrientation();
+            if (azimut != ORIENTATION_DISABLE) {
+                m_currentOrientInDegree = Math.toDegrees(azimut + Math.PI * 2.0) % 360;
+            }
+        }
+        else if (sensorType == sensor.TYPE_MAGNETIC_FIELD) {
+            System.arraycopy(event.values, 0, m_lastMagnValue, 0, event.values.length);
+            float azimut = calculateOrientation();
+            if (azimut != ORIENTATION_DISABLE) {
+                m_currentOrientInDegree = Math.toDegrees(azimut + Math.PI * 2.0) % 360;
+            }
+        }
+        // Record sensor values to realize all the position algorithm
+        recordSensorValues(event);
+    }
+
+    private void recordSensorValues(SensorEvent event) {
+        if (!m_sensorFlag)
+            return;
+        Sensor sensor = event.sensor;
+        int sensorType = sensor.getType();
         StringBuilder sb = new StringBuilder();
         sb.append("1305");
         sb.append(",");
-        Calendar calendar = Calendar.getInstance();
-        Long timeStamp = calendar.getTimeInMillis();
+        Long timeStamp = event.timestamp / MS2NS;
         sb.append(timeStamp);
         sb.append(",");
-        int sensorType = sensor.getType();
         // Accelerometer - Oriention and Step Counter
         if (sensorType == sensor.TYPE_ACCELEROMETER) {
             System.arraycopy(event.values, 0, m_lastAcceValue, 0, event.values.length);
@@ -105,23 +192,21 @@ public class SensorCollector implements SensorEventListener {
             sb.append(event.values[2]);
             sb.append('\n');
             m_sensorValueLists[0].add(sb.toString());
-            if (m_sensorValueLists[2].size() > 0) {
-                float azimut = calculateOrientation();
-                if (azimut != ORIENTATION_DISABLE) {
-                    sb.setLength(0);
-                    sb.append("1305");
-                    sb.append(",");
-                    sb.append(timeStamp);
-                    sb.append(",");
-                    sb.append(azimut);
-                    sb.append(",0,0\n");
-                    m_sensorValueLists[3].add(sb.toString());
-                    OrientRecord or = new OrientRecord();
-                    or.setTimeStamp(timeStamp);
-                    azimut = azimut > 0 ? azimut : (float)(azimut + Math.PI * 2.0);
-                    or.setAzimut(azimut);
-                    m_orientValueList.add(or);
-                }
+            float azimut = calculateOrientation();
+            if (azimut != ORIENTATION_DISABLE) {
+                sb.setLength(0);
+                sb.append("1305");
+                sb.append(",");
+                sb.append(timeStamp);
+                sb.append(",");
+                sb.append(azimut);
+                sb.append(",0,0\n");
+                m_sensorValueLists[3].add(sb.toString());
+                OrientRecord or = new OrientRecord();
+                or.setTimeStamp(timeStamp);
+                azimut = azimut > 0 ? azimut : (float)(azimut + Math.PI * 2.0);
+                or.setAzimut(azimut);
+                m_orientValueList.add(or);
             }
         }
         else if (sensorType == sensor.TYPE_GYROSCOPE) {
@@ -142,23 +227,21 @@ public class SensorCollector implements SensorEventListener {
             sb.append(event.values[2]);
             sb.append('\n');
             m_sensorValueLists[2].add(sb.toString());
-            if (m_sensorValueLists[0].size() > 0) {
-                float azimut = calculateOrientation();
-                if (azimut != ORIENTATION_DISABLE) {
-                    sb.setLength(0);
-                    sb.append("1305");
-                    sb.append(",");
-                    sb.append(timeStamp);
-                    sb.append(",");
-                    sb.append(azimut);
-                    sb.append(",0,0\n");
-                    m_sensorValueLists[3].add(sb.toString());
-                    OrientRecord or = new OrientRecord();
-                    or.setTimeStamp(timeStamp);
-                    azimut = azimut > 0 ? azimut : (float)(azimut + Math.PI * 2.0);
-                    or.setAzimut(azimut);
-                    m_orientValueList.add(or);
-                }
+            float azimut = calculateOrientation();
+            if (azimut != ORIENTATION_DISABLE) {
+                sb.setLength(0);
+                sb.append("1305");
+                sb.append(",");
+                sb.append(timeStamp);
+                sb.append(",");
+                sb.append(azimut);
+                sb.append(",0,0\n");
+                m_sensorValueLists[3].add(sb.toString());
+                OrientRecord or = new OrientRecord();
+                or.setTimeStamp(timeStamp);
+                azimut = azimut > 0 ? azimut : (float)(azimut + Math.PI * 2.0);
+                or.setAzimut(azimut);
+                m_orientValueList.add(or);
             }
         }
     }

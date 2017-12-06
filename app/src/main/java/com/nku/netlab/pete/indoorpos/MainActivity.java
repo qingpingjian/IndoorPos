@@ -12,74 +12,53 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.nku.netlab.pete.indoorpos.listener.UIOrientationListener;
-import com.nku.netlab.pete.indoorpos.listener.UIOrientationUpdater;
 import com.nku.netlab.pete.indoorpos.listener.SensorCollector;
 import com.nku.netlab.pete.indoorpos.listener.WifiReceiver;
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, WifiFragment.OnFragmentWiFiListener {
     private static final String LOG_TAG = "indoorpos";
-    private static MainActivity mainActivity;
+    private static final int BACK_PRESSED_INTERVAL = 2000;
 
     public static class State {
         WifiReceiver wifiReceiver;
         SensorCollector sensorCollector;
-        UIOrientationListener orientationListener;
         final Fragment[] fragList = new Fragment[2];
         int currentFragIndex;
-        AtomicBoolean finishing;
+        AtomicBoolean isFinishing;
     }
     private State state;
-    public static final int WIFI_TAB_POS = 0;
-    public static final int PDR_TAB_POS = 1;
-    public static final String [] fragTags = new String[] {
-            "wifi_tab",
-            "pdr_tab",
+    private static final int WIFI_TAB_POS = 0;
+    private static final int PDR_TAB_POS = 1;
+    private static final String [] fragTags = new String[] {
+            "wifi_training_fragment",
+            "pdr_only_fragment",
     };
 
-    private boolean isQuit;
-    private Timer timer;
+    // Double click "Back" key to quit
+    private long m_currentBackPressedTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mainActivity = this;
         setupMenuDrawer();
-
-//        TODO: remove floating action button
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-       // if (savedInstanceState == null) {
-            state = new State();
-            state.finishing = new AtomicBoolean(false);
-            state.wifiReceiver = new WifiReceiver(this);
-            state.sensorCollector = new SensorCollector(this);
-            state.orientationListener = new UIOrientationListener(this);
-            setupFragments();
-            state.currentFragIndex = -1; // I want to add fragment in selectFragment method
-            // show the wifi training fragment by default
-            selectFragment(WIFI_TAB_POS);
-            isQuit = false;
-            timer = new Timer();
-        //}
+        state = new State();
+        state.wifiReceiver = new WifiReceiver(this);
+        state.sensorCollector = new SensorCollector(this);
+        state.isFinishing = new AtomicBoolean(false);
+        setupFragments();
+        state.currentFragIndex = -1; // I want to add fragment in selectFragment method
+        // show the wifi training fragment by default
+        selectFragment(WIFI_TAB_POS);
+        m_currentBackPressedTime = 0;
     }
 
     private void setupMenuDrawer() {
@@ -96,6 +75,18 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
+//    private void setupFloatingButton() {
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
+//    }
+
     private void setupFragments() {
         info("Creating WifiFragment");
         state.fragList[WIFI_TAB_POS] = WifiFragment.newInstance();
@@ -109,9 +100,14 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
+        } else if (System.currentTimeMillis() - m_currentBackPressedTime > BACK_PRESSED_INTERVAL) {
+            m_currentBackPressedTime = System.currentTimeMillis();
+            showToast(getString(R.string.key_back_twice));
+        }
+        else {
             super.onBackPressed();
         }
+
     }
 
 //    @Override
@@ -191,63 +187,39 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        state.orientationListener.registerEventListener();
+        state.sensorCollector.registerEventListener();
     }
 
     @Override
     protected void onPause() {
-        state.orientationListener.unregisterEventListener();
+        prepareFinish();
         super.onPause();
-    }
-
-    @Override
-    public boolean isFinishing() {
-        return state.finishing.get();
     }
 
     @Override
     public void finish() {
         // TODO: add some clear operation before finish
-        final boolean wasFinishing = state.finishing.getAndSet(true);
+        final boolean wasFinishing = state.isFinishing.getAndSet(true);
         if (!wasFinishing) { // The wasFinishing is true which means finish twice
-            state.wifiReceiver.stopScan();
-            state.sensorCollector.unregisterEventListener();
-            // Give some time to say bye
+            prepareFinish();
+            // Waiting sub-threads to stop
             sleep(50);
         }
-
         super.finish();
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (isQuit == false) {
-                isQuit = true;
-                showToast(getString(R.string.key_back_twice));
-                TimerTask task = null;
-                task = new TimerTask() {
-                    @Override
-                    public void run() {
-                        isQuit = false;
-                    }
-                };
-                timer.schedule(task, 2000);
-            } else {
-                finish();
-                System.exit(0);
-            }
-        }
-        return true;
+    private void prepareFinish() {
+        state.sensorCollector.unregisterEventListener();
+        state.wifiReceiver.stopScan();
     }
 
     @Override
     public boolean onStartScanWifi(WifiScanConfig config) {
-        WifiManager manager = (WifiManager) this.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         boolean wifiFlag = manager.isWifiEnabled();
         if (wifiFlag) {
             state.wifiReceiver.startScan(config);
-            state.sensorCollector.registerEventListener();
+            state.sensorCollector.startRecordSensors();
         }
         else {
             showToast(getString(R.string.wifi_status));
@@ -259,7 +231,7 @@ public class MainActivity extends AppCompatActivity
     public void onStopScanWifi() {
         if (state != null) {
             state.wifiReceiver.stopScan();
-            state.sensorCollector.unregisterEventListener();
+            state.sensorCollector.stopRecordSensors();
         }
     }
 
@@ -270,11 +242,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // To update orientation in views, so orient is value in degree.
     public void updateFragmentOrientation(double orient) {
         if (state != null) {
             Fragment frag = state.fragList[state.currentFragIndex];
-            if (frag instanceof UIOrientationUpdater) {
-                UIOrientationUpdater fragOrientListener = (UIOrientationUpdater)frag;
+            if (frag instanceof UIOrientationListener) {
+                UIOrientationListener fragOrientListener = (UIOrientationListener)frag;
                 fragOrientListener.onOrientationChanged(orient);
             }
         }
@@ -287,6 +260,7 @@ public class MainActivity extends AppCompatActivity
         }
         return orient;
     }
+
     /**
      * Show toast message despite of non-UI threads.
      * */

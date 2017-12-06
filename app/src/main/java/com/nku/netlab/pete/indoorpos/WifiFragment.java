@@ -19,14 +19,14 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.nku.netlab.pete.indoorpos.listener.UIOrientationUpdater;
+import com.nku.netlab.pete.indoorpos.listener.UIOrientationListener;
 import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WifiFragment extends Fragment implements View.OnClickListener, UIOrientationUpdater {
+public class WifiFragment extends Fragment implements View.OnClickListener, UIOrientationListener {
     // the fragment initialization parameters
     private static final String ARG_WIFI_SCAN = "wifi_scan_config";
 
@@ -268,7 +268,7 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
             Context context = getActivity().getApplicationContext();
             Toast.makeText(context,
                     String.format(context.getString(R.string.wifi_scan_finished), scanNum),
-                    Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_SHORT).show();
         }
 
     }

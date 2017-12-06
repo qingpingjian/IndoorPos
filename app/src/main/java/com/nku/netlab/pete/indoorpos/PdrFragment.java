@@ -13,13 +13,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nku.netlab.pete.indoorpos.listener.UIOrientationUpdater;
+import com.nku.netlab.pete.indoorpos.listener.UIOrientationListener;
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PdrFragment extends Fragment implements UIOrientationUpdater {
+public class PdrFragment extends Fragment implements UIOrientationListener {
     private TextView m_tvOrient;
 
     public static PdrFragment newInstance() {
