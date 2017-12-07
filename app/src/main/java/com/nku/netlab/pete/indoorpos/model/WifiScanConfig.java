@@ -3,29 +3,21 @@ package com.nku.netlab.pete.indoorpos.model;
 import java.io.Serializable;
 
 public class WifiScanConfig implements Serializable{
-    public static final int WIFI_SCAN_DATA_CHANGE = 0;
-    public static final int WIFI_SCAN_FIX_TIME = 1;
-    public static final int WIFI_SCAN_MIN_FREQUENCY = 100; // milliseconds
-    public static final int WIFI_SCAN_DEFAULT_FREQUENCY = 500; // milliseconds
-    private int scanType;
+    public static final String WIFI_SCAN_CYCLE_SETTING = "wifi_scan_cycle_setting";
+    public static final String WIFI_SCAN_NUM_SETTING = "wifi_scan_num_setting";
+    public static final int WIFI_SCAN_MIN_CYCLE = 100; // milliseconds
+    public static final int WIFI_SCAN_DEFAULT_CYCLE = 500; // milliseconds
+    public static final int WIFI_SCAN_DEFAULT_NUM = 10;
     private int scanCycle;
     private int scanNum;
     private float coordX;
     private float coordY;
 
     public WifiScanConfig() {
-        scanType = WIFI_SCAN_FIX_TIME;
-        scanCycle = WIFI_SCAN_DEFAULT_FREQUENCY;
-        scanNum = 4;
+        scanCycle = WIFI_SCAN_DEFAULT_CYCLE;
+        scanNum = 10;
         coordX = 0.0f;
         coordY = 0.0f;
-    }
-    public int getScanType() {
-        return scanType;
-    }
-
-    public void setScanType(int scanType) {
-        this.scanType = scanType;
     }
 
     public int getScanCycle() {

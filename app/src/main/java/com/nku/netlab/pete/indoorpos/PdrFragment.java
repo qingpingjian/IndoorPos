@@ -38,7 +38,7 @@ public class PdrFragment extends Fragment implements UIOrientationListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        final View view = inflater.inflate(R.layout.fragment_pdr, container, false);
+        final View view = inflater.inflate(R.layout.fragment_pdr_only, container, false);
         setHasOptionsMenu(true);
         m_tvOrient = (TextView) view.findViewById(R.id.tvOrient);
         return view;

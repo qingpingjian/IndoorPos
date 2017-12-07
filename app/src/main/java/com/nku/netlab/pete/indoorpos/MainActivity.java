@@ -1,6 +1,7 @@
 package com.nku.netlab.pete.indoorpos;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -23,9 +24,10 @@ import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, WifiFragment.OnFragmentWiFiListener {
+        implements NavigationView.OnNavigationItemSelectedListener, WifiTrainingFragment.OnFragmentWiFiListener {
     private static final String LOG_TAG = "indoorpos";
     private static final int BACK_PRESSED_INTERVAL = 2000;
+    public static final String SHARED_PREFS = "indoor_pos_settings";
 
     public static class State {
         WifiReceiver wifiReceiver;
@@ -88,8 +90,14 @@ public class MainActivity extends AppCompatActivity
 //    }
 
     private void setupFragments() {
-        info("Creating WifiFragment");
-        state.fragList[WIFI_TAB_POS] = WifiFragment.newInstance();
+        info("Creating WifiTrainingFragment");
+        final SharedPreferences settings = getSharedPreferences(MainActivity.SHARED_PREFS, 0);
+        int scanCycle = settings.getInt(WifiScanConfig.WIFI_SCAN_CYCLE_SETTING, WifiScanConfig.WIFI_SCAN_DEFAULT_CYCLE);
+        int scanNum = settings.getInt(WifiScanConfig.WIFI_SCAN_NUM_SETTING, WifiScanConfig.WIFI_SCAN_DEFAULT_NUM);
+        WifiScanConfig scanConfig = new WifiScanConfig();
+        scanConfig.setScanCycle(scanCycle);
+        scanConfig.setScanNum(scanNum);
+        state.fragList[WIFI_TAB_POS] = WifiTrainingFragment.newInstance(scanConfig);
 
         info("Creating PdrFragment");
         state.fragList[PDR_TAB_POS] = PdrFragment.newInstance();
@@ -220,6 +228,12 @@ public class MainActivity extends AppCompatActivity
         if (wifiFlag) {
             state.wifiReceiver.startScan(config);
             state.sensorCollector.startRecordSensors();
+            // Save the config for next scan
+            SharedPreferences settings = getSharedPreferences(MainActivity.SHARED_PREFS, 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putInt(WifiScanConfig.WIFI_SCAN_CYCLE_SETTING, config.getScanCycle());
+            editor.putInt(WifiScanConfig.WIFI_SCAN_NUM_SETTING, config.getScanNum());
+            editor.apply();
         }
         else {
             showToast(getString(R.string.wifi_status));
@@ -237,7 +251,7 @@ public class MainActivity extends AppCompatActivity
 
     public void updateWifiScanStatus(int scanNum) {
         if (state != null) {
-            WifiFragment wifiFrag = (WifiFragment) state.fragList[WIFI_TAB_POS];
+            WifiTrainingFragment wifiFrag = (WifiTrainingFragment) state.fragList[WIFI_TAB_POS];
             wifiFrag.updateWifiScanStatus(scanNum);
         }
     }

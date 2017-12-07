@@ -10,15 +10,17 @@
     <string name="nav_pdr_title">行人航位推算</string>
     <!-- WiFi Fragment Components -->
     <string name="wifi_scan_cycle">周期</string>
-    <string name="wifi_scan_fix_time">每隔一秒</string>
-    <string name="wifi_scan_data_change">数据变化</string>
+    <string name="wifi_scan_cycle_picker_title">设置扫描周期（秒）</string>
     <string name="wifi_scan_num">次数</string>
+    <string name="wifi_scan_num_picker_title">设置扫描次数</string>
     <string name="wifi_coord">坐标(m)</string>
     <string name="wifi_orient">方向(\u00B0)</string>
     <string name="wifi_scan">扫描</string>
     <string name="wifi_stop">停止</string>
     <string name="wifi_status">请先打开WiFi连接.</string>
     <string name="wifi_scan_finished">WiFi扫描完成, 共获取%d条指纹</string>
+    <string name="wifi_scan_dialog_ok">确定</string>
+    <string name="wifi_scan_dialog_cancel">取消</string>
 
     <string name="navigation_drawer_open">打开侧边栏</string>
     <string name="navigation_drawer_close">关闭侧边栏</string>

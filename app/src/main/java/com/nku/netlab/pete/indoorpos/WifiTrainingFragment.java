@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,13 +27,14 @@ import com.nku.netlab.pete.indoorpos.model.WifiScanConfig;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WifiFragment extends Fragment implements View.OnClickListener, UIOrientationListener {
+public class WifiTrainingFragment extends Fragment implements View.OnClickListener, UIOrientationListener {
     // the fragment initialization parameters
-    private static final String ARG_WIFI_SCAN = "wifi_scan_config";
+    private static final String ARG_WIFI_SCAN = "wifi_training_scan_config";
 
     private OnFragmentWiFiListener m_WifiListener;
-    private EditText m_edtScanCycle;
-    private EditText m_edtScanNum;
+    private int m_scanCycle;
+    private int m_scanNum;
+
     private EditText m_edtX;
     private EditText m_edtY;
     private EditText m_edtOrient;
@@ -64,18 +66,16 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
         }
     }
 
-    public static WifiFragment newInstance() {
-        WifiFragment wifiFrag = new WifiFragment();
+    public static WifiTrainingFragment newInstance(WifiScanConfig config) {
+        WifiTrainingFragment wifiFrag = new WifiTrainingFragment();
         Bundle args = new Bundle();
-        WifiScanConfig config = new WifiScanConfig();
         args.putSerializable(ARG_WIFI_SCAN, config);
         wifiFrag.setArguments(args);
         return wifiFrag;
     }
 
-    public WifiFragment() {
+    public WifiTrainingFragment() {
         // Required empty public constructor
-
     }
 
     @Override
@@ -88,10 +88,8 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        final View view = inflater.inflate(R.layout.fragment_wifi, container, false);
+        final View view = inflater.inflate(R.layout.fragment_wifi_training, container, false);
         setHasOptionsMenu(true);
-        m_edtScanCycle = (EditText) view.findViewById(R.id.edtScanCycle);
-        m_edtScanNum = (EditText)view.findViewById(R.id.edtScanNum);
         m_edtX = (EditText) view.findViewById(R.id.edtX);
         m_edtY = (EditText) view.findViewById(R.id.edtY);
         m_edtOrient = (EditText) view.findViewById(R.id.edtOrient);
@@ -100,13 +98,17 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
         m_btnStop = (Button) view.findViewById(R.id.btnStop);
         m_btnScan.setOnClickListener(this);
         m_btnStop.setOnClickListener(this);
+        WifiScanConfig config = null;
         Bundle args = getArguments();
         if (args != null) {
-            WifiScanConfig config = (WifiScanConfig) args.getSerializable(ARG_WIFI_SCAN);
-            m_edtScanCycle.setText(String.format("%.1f", (config.getScanCycle() * 1.0) / 1000));
-            m_edtScanNum.setText("" + config.getScanNum());
-            m_pbScanStatus.setMax(config.getScanNum());
+            config = (WifiScanConfig) args.getSerializable(ARG_WIFI_SCAN);
         }
+        else {
+            config = new WifiScanConfig();
+        }
+        m_scanCycle = config.getScanCycle();
+        m_scanNum = config.getScanNum();
+        m_pbScanStatus.setMax(m_scanNum);
         MainActivity.info("WiFi: createView.");
         return view;
     }
@@ -120,32 +122,23 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        Context context = getActivity().getApplicationContext();
         if (id == R.id.wifi_train_cycle_setting) {
             showScanCycleDialog();
-//            Toast.makeText(context,
-//                    "Cycle Setting item Clicked",
-//                    Toast.LENGTH_SHORT).show();
         }
         else if (id == R.id.wifi_train_num_setting) {
             showScanNumDialog();
-//            Toast.makeText(context,
-//                    "Scan Number Setting item Clicked",
-//                    Toast.LENGTH_SHORT).show();
         }
         return true;
     }
 
     private void showScanCycleDialog() {
-        RelativeLayout linearLayout = new RelativeLayout(getActivity());
-        final NumberPicker aNumberPicker = new NumberPicker(getActivity());
+        FragmentActivity activity = getActivity();
+        RelativeLayout linearLayout = new RelativeLayout(activity);
+        final NumberPicker aNumberPicker = new NumberPicker(activity);
         aNumberPicker.setMaxValue(4);
         aNumberPicker.setMinValue(1);
-        aNumberPicker.setValue((int)(Float.parseFloat(m_edtScanCycle.getText().toString().trim()) / 0.5));
+        aNumberPicker.setValue(m_scanCycle / 500);
         aNumberPicker.setDisplayedValues(new String[]{"0.5", "1.0", "1.5", "2.0"});
-//        if (id == R.id.wifi_train_cycle_setting) {
-//            aNumberPicker.setDisplayedValues(new String[] {"0.5", ""});
-//        }
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(50, 50);
         RelativeLayout.LayoutParams numPicerParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -154,19 +147,19 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
         linearLayout.setLayoutParams(params);
         linearLayout.addView(aNumberPicker,numPicerParams);
 
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-        alertDialogBuilder.setTitle("Select the scan number");
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
+        alertDialogBuilder.setTitle(activity.getString(R.string.wifi_scan_cycle_picker_title));
         alertDialogBuilder.setView(linearLayout);
         alertDialogBuilder
                 .setCancelable(false)
-                .setPositiveButton("Ok",
+                .setPositiveButton(activity.getString(R.string.wifi_scan_dialog_ok),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int id) {
-                                m_edtScanCycle.setText(String.format("%.1f", aNumberPicker.getValue() * 0.5));
+                                m_scanCycle = aNumberPicker.getValue() * 500;
                             }
                         })
-                .setNegativeButton("Cancel",
+                .setNegativeButton(activity.getString(R.string.wifi_scan_dialog_cancel),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int id) {
@@ -178,36 +171,34 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
     }
 
     private void showScanNumDialog() {
-        RelativeLayout linearLayout = new RelativeLayout(getActivity());
-        final NumberPicker aNumberPicker = new NumberPicker(getActivity());
+        FragmentActivity activity = getActivity();
+        RelativeLayout linearLayout = new RelativeLayout(activity);
+        final NumberPicker aNumberPicker = new NumberPicker(activity);
         aNumberPicker.setMaxValue(6);
         aNumberPicker.setMinValue(1);
-        aNumberPicker.setValue(Integer.parseInt(m_edtScanNum.getText().toString().trim()) / 5);
+        aNumberPicker.setValue(m_scanNum / 5);
         aNumberPicker.setDisplayedValues(new String[]{"5", "10", "15", "20", "25", "30"});
-//        if (id == R.id.wifi_train_cycle_setting) {
-//            aNumberPicker.setDisplayedValues(new String[] {"0.5", ""});
-//        }
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(50, 50);
-        RelativeLayout.LayoutParams numPicerParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        numPicerParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        RelativeLayout.LayoutParams numPickerParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        numPickerParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
 
         linearLayout.setLayoutParams(params);
-        linearLayout.addView(aNumberPicker,numPicerParams);
+        linearLayout.addView(aNumberPicker,numPickerParams);
 
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-        alertDialogBuilder.setTitle("Select the scan number");
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
+        alertDialogBuilder.setTitle(activity.getString(R.string.wifi_scan_num_picker_title));
         alertDialogBuilder.setView(linearLayout);
         alertDialogBuilder
                 .setCancelable(false)
-                .setPositiveButton("Ok",
+                .setPositiveButton(activity.getString(R.string.wifi_scan_dialog_ok),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int id) {
-                                m_edtScanNum.setText("" + aNumberPicker.getValue() * 5);
+                                m_scanNum = aNumberPicker.getValue() * 5;
                             }
                         })
-                .setNegativeButton("Cancel",
+                .setNegativeButton(activity.getString(R.string.wifi_scan_dialog_cancel),
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int id) {
@@ -218,29 +209,19 @@ public class WifiFragment extends Fragment implements View.OnClickListener, UIOr
         alertDialog.show();
     }
 
-//    public static class WifiNumPickerDialog extends DialogFragment {
-//        @Nullable
-//        @Override
-//        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//
-//        }
-//    }
-
     @Override
     public void onClick(View v) {
         int id = v.getId();
         if(id == R.id.btnScan) {
-            int scanNum = Integer.parseInt(m_edtScanNum.getText().toString().trim());
             WifiScanConfig config = new WifiScanConfig();
-            config.setScanCycle((int) (Float.parseFloat(m_edtScanCycle.getText().toString().trim()) * 1000));
-//            config.setScanType(m_rbDataChange.isChecked() ? WifiScanConfig.WIFI_SCAN_DATA_CHANGE : WifiScanConfig.WIFI_SCAN_FIX_TIME);
-            config.setScanNum(scanNum);
+            config.setScanCycle(m_scanCycle);
+            config.setScanNum(m_scanNum);
             config.setCoordX(Float.parseFloat(m_edtX.getText().toString().trim()));
             config.setCoordY(Float.parseFloat(m_edtY.getText().toString().trim()));
             if (m_WifiListener.onStartScanWifi(config)) {
                 m_btnScan.setEnabled(false);
                 m_btnStop.setEnabled(true);
-                m_pbScanStatus.setMax(scanNum);
+                m_pbScanStatus.setMax(m_scanNum);
                 m_pbScanStatus.setVisibility(View.VISIBLE);
                 m_pbScanStatus.setProgress(0);
             }

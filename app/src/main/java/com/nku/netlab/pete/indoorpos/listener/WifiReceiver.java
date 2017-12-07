@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.CountDownTimer;
+import android.util.Base64;
 import android.util.Log;
 
 import com.nku.netlab.pete.indoorpos.MainActivity;
@@ -19,14 +21,11 @@ import java.util.List;
 
 public class WifiReceiver extends BroadcastReceiver {
     private MainActivity mainActivity;
+    private WifiScanConfig m_config;
     private boolean m_isScanning;
     private WifiManager wifiManager;
-    private ArrayList<String> m_wifiRSSList;
     private ArrayList<WifiRecord> m_wifiRecordList;
-//    private Timer m_scanTimer;
-//    private TimerTask m_scanTimerTask ;
     private CountDownTimer m_scanWifiCDT;
-    private WifiScanConfig m_config;
     private SDiskHelper m_sdHelper;
 
     private class WifiRecord {
@@ -49,10 +48,6 @@ public class WifiReceiver extends BroadcastReceiver {
             this.coordY = coordY;
         }
 
-        public long getTimeStamp() {
-            return timeStamp;
-        }
-
         public void setTimeStamp(long timeStamp) {
             this.timeStamp = timeStamp;
         }
@@ -67,8 +62,10 @@ public class WifiReceiver extends BroadcastReceiver {
 
         @Override
         public String toString() {
-            // "floorid,coordx,coordy,timestamp,wifiinfos,orient"
+            // "userid,floorid,coordx,coordy,timestamp,wifiinfos,orient"
             StringBuilder sb = new StringBuilder();
+            sb.append(Base64.encodeToString((Build.BOARD + "-" + Build.MODEL).getBytes(), Base64.DEFAULT).trim());
+            sb.append(",");
             sb.append(floorID);
             sb.append(",");
             sb.append(String.format("%.3f", coordX));
@@ -79,29 +76,19 @@ public class WifiReceiver extends BroadcastReceiver {
             sb.append(",");
             sb.append(wifiInfos);
             sb.append(",");
-            sb.append(String.format("%.3f", azimut));
+            sb.append(String.format("%.4f", azimut));
             sb.append("\n");
             return sb.toString();
         }
     }
-//    private class ScanHandler extends Handler {
-//        public void handleMessage(Message msg) {
-//            getWifiScanResults();
-//            super.handleMessage(msg);
-//        }
-//    }
 
     public WifiReceiver(final MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        this.m_isScanning = false;
-        this.wifiManager = (WifiManager) this.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        this.m_wifiRSSList = new ArrayList<>();
-        this.m_wifiRecordList = new ArrayList<>();
-//        this.m_scanTimer = null;
-//        this.m_scanTimerTask = null;
-//        this.m_scanHandler = new ScanHandler();
-        this.m_config = null;
-        this.m_sdHelper = new SDiskHelper();
+        m_config = null;
+        m_isScanning = false;
+        wifiManager = (WifiManager) this.mainActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        m_wifiRecordList = new ArrayList<>();
+        m_sdHelper = new SDiskHelper();
     }
 
     @Override
@@ -117,15 +104,8 @@ public class WifiReceiver extends BroadcastReceiver {
         int wifiSize = result.size();
         if (wifiSize > 0) {
             // "floorid,coordx,coordy,timestamp,wifiinfos,orient"
-            Calendar calendar = Calendar.getInstance();
-            long currentTime = calendar.getTimeInMillis();
-            long lastWifiTime = 0;
-            if (m_wifiRecordList.size() > 0) {
-                lastWifiTime = m_wifiRecordList.get(m_wifiRecordList.size() - 1).getTimeStamp();
-            }
-            else {
-                lastWifiTime = currentTime - WifiScanConfig.WIFI_SCAN_MIN_FREQUENCY;
-            }
+            long currentTime = System.currentTimeMillis();
+            long lastWifiTime = currentTime - WifiScanConfig.WIFI_SCAN_MIN_CYCLE;
             StringBuilder sb = new StringBuilder();
             ScanResult scanRecord = null;
             for (int i = 0; i < result.size(); i++) {
@@ -141,11 +121,10 @@ public class WifiReceiver extends BroadcastReceiver {
             record.setTimeStamp(currentTime);
             record.setWifiInfos(sb.toString());
             record.setAzimut(mainActivity.getOrientByTimeStamp(lastWifiTime, currentTime));
-            m_wifiRSSList.add(record.toString());
             m_wifiRecordList.add(record);
-            int recordNum = m_wifiRSSList.size();
+            int recordNum = m_wifiRecordList.size();
             // To update the view of wifi fragment
-            this.mainActivity.updateWifiScanStatus(recordNum);
+            mainActivity.updateWifiScanStatus(recordNum);
             // We have enough wifi rss records
             if (recordNum >= m_config.getScanNum()) {
                 stopScan();
@@ -155,7 +134,10 @@ public class WifiReceiver extends BroadcastReceiver {
                     public void run() {
                         super.run();
                         try {
-                            m_sdHelper.toSaveWifiMapper(m_wifiRSSList);
+                            ArrayList<String> wifiRecordStrList = new ArrayList<String>();
+                            for(WifiRecord wifiInfo: m_wifiRecordList)
+                                wifiRecordStrList.add(wifiInfo.toString());
+                            m_sdHelper.toSaveWifiMapper(wifiRecordStrList);
                         }
                         catch (Exception ex) {
                             MainActivity.warn("WiFiReceiver failed to save rss data.", ex);
@@ -168,37 +150,6 @@ public class WifiReceiver extends BroadcastReceiver {
             }
         }
     }
-//
-//    private void startTimer() {
-//        if (m_scanTimer == null) {
-//            m_scanTimer = new Timer();
-//        }
-//        if (m_scanTimerTask == null) {
-//            m_scanTimerTask = new TimerTask() {
-//                @Override
-//                public void run() {
-//                    Message message = new Message();
-//                    message.what = 1;
-//                    m_scanHandler.sendMessage(message);
-//                }
-//            };
-//        }
-//        if (m_scanTimer != null && m_scanTimerTask != null) {
-//            // give 100ms for wifi interface
-//            m_scanTimer.schedule(m_scanTimerTask, 100, 1000); // get scan results for each second
-//        }
-//    }
-//
-//    private void stopTimer() {
-//        if (m_scanTimer != null) {
-//            m_scanTimer.cancel();
-//            m_scanTimer = null;
-//        }
-//        if (m_scanTimerTask != null) {
-//            m_scanTimerTask.cancel();
-//            m_scanTimerTask = null;
-//        }
-//    }
 
     /**
      *  This should be called in non-UI thread and this method will block its owner thread.
@@ -206,13 +157,11 @@ public class WifiReceiver extends BroadcastReceiver {
     public void startScan(WifiScanConfig config) {
         synchronized (this) {
             m_config = config;
-            m_wifiRSSList.clear();
             m_wifiRecordList.clear();
             m_isScanning = true;
         }
 
-        int scanCycle = m_config.getScanCycle();
-        m_scanWifiCDT = new CountDownTimer(scanCycle, m_config.WIFI_SCAN_MIN_FREQUENCY) {
+        m_scanWifiCDT = new CountDownTimer(m_config.getScanCycle(), m_config.WIFI_SCAN_MIN_CYCLE) {
             @Override
             public void onTick(long millisUntilFinished) {
 
@@ -233,15 +182,6 @@ public class WifiReceiver extends BroadcastReceiver {
             MainActivity.warn("WiFiReceiver failed to register.", ex);
         }
 
-
-
-        // data change
-//        if (m_config.getScanType() == WifiScanConfig.WIFI_SCAN_DATA_CHANGE) {
-//
-//        }
-//        else { // fix time
-//            startTimer();
-//        }
         this.wifiManager.startScan();
     }
 
@@ -254,7 +194,6 @@ public class WifiReceiver extends BroadcastReceiver {
         catch (Exception ex) {
             MainActivity.warn("WiFiReceiver failed to unregister.", ex);
         }
-//        stopTimer();
         m_isScanning = false;
     }
 

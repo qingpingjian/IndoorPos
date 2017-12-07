@@ -15,7 +15,6 @@ import java.util.TimerTask;
 import com.nku.netlab.pete.indoorpos.MainActivity;
 
 public class SensorCollector implements SensorEventListener {
-    private static final long MS2NS = 1000;
     private static final float ORIENTATION_DISABLE = -100.0f;
 
     private MainActivity mainActivity;
@@ -152,6 +151,11 @@ public class SensorCollector implements SensorEventListener {
         Sensor sensor = event.sensor;
         if (sensor == null)
             return;
+
+        // Record sensor values to realize all the position algorithm
+        recordSensorValues(event);
+
+        // To update the orientation in views of different fragments
         int sensorType = sensor.getType();
         if (sensorType == sensor.TYPE_ACCELEROMETER) {
             System.arraycopy(event.values, 0, m_lastAcceValue, 0, event.values.length);
@@ -167,8 +171,6 @@ public class SensorCollector implements SensorEventListener {
                 m_currentOrientInDegree = Math.toDegrees(azimut + Math.PI * 2.0) % 360;
             }
         }
-        // Record sensor values to realize all the position algorithm
-        recordSensorValues(event);
     }
 
     private void recordSensorValues(SensorEvent event) {
@@ -179,7 +181,7 @@ public class SensorCollector implements SensorEventListener {
         StringBuilder sb = new StringBuilder();
         sb.append("1305");
         sb.append(",");
-        Long timeStamp = event.timestamp / MS2NS;
+        Long timeStamp = System.currentTimeMillis();
         sb.append(timeStamp);
         sb.append(",");
         // Accelerometer - Oriention and Step Counter
