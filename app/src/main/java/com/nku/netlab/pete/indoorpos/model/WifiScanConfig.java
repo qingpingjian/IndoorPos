@@ -7,7 +7,7 @@ public class WifiScanConfig implements Serializable{
     public static final String WIFI_SCAN_NUM_SETTING = "wifi_scan_num_setting";
     public static final int WIFI_SCAN_MIN_CYCLE = 100; // milliseconds
     public static final int WIFI_SCAN_DEFAULT_CYCLE = 500; // milliseconds
-    public static final int WIFI_SCAN_DEFAULT_NUM = 10;
+    public static final int WIFI_SCAN_DEFAULT_NUM = 50;
     private int scanCycle;
     private int scanNum;
     private float coordX;

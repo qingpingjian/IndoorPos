@@ -1,6 +1,5 @@
 package com.nku.netlab.pete.indoorpos;
 
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -174,10 +173,10 @@ public class WifiTrainingFragment extends Fragment implements View.OnClickListen
         FragmentActivity activity = getActivity();
         RelativeLayout linearLayout = new RelativeLayout(activity);
         final NumberPicker aNumberPicker = new NumberPicker(activity);
-        aNumberPicker.setMaxValue(6);
+        aNumberPicker.setMaxValue(10);
         aNumberPicker.setMinValue(1);
         aNumberPicker.setValue(m_scanNum / 5);
-        aNumberPicker.setDisplayedValues(new String[]{"5", "10", "15", "20", "25", "30"});
+        aNumberPicker.setDisplayedValues(new String[]{"5", "10", "15", "20", "25", "30", "35", "40", "45", "50"});
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(50, 50);
         RelativeLayout.LayoutParams numPickerParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
