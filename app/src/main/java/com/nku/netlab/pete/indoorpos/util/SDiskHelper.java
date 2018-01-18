@@ -14,6 +14,7 @@ import java.util.Date;
 public class SDiskHelper {
     private static final String DIRECTORY_ROOT = "IndoorPos";
     private static final String DIRECTORY_WIFI_MAPPER = "wifimapper";
+    private static final String DIRECTORY_PDR_SENSOR = "pdrsensor";
     private static final String FILE_EXTENTION = "csv";
     private static final String WIFI_MAPPER_HEADLINE = "userid,floorid,coordx,coordy,timestamp,wifiinfos,orient\n";
     private static final String ACCE_PDR_HEADLINE = "userid,floorid,timestamp,acce_x,acce_y,acce_z\n";
